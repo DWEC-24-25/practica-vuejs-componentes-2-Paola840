@@ -24,15 +24,17 @@
                 </div>
 
                 <div class="row">
-                    <div>
-                        <div class="col-md-4" v-for="(item, index) in col.items" :key="index">
-                            <item-data :item="item" :index="index"></item-data>
+                    <div class="col-md-4" v-for="(item, index) in col.items" :key="index">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <dl class="mt-3">
+                                    <item-data :item="item" :index="index"></item-data>
+                                
+                                </dl>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-            </div>
-        </div>
             <!--
                  TODO: Aplicación Vue 3. Ver archivo ./js/script.js
                - Mostrar el título de la colección dentro de un componente de Bootstrap 5. 
@@ -45,13 +47,12 @@
             
 
             <!-- TODO: Iterar sobre los items y mostrar cada uno usando el componente item-data -->
-            <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-            <script src="./js/script.js"></script>
 
         </div>
 
         <!-- TODO: Cargar librería Vue 3 y archivo js/script.js -->
-       
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="./js/script.js"></script>
 
     </body>
 
