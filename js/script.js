@@ -1,4 +1,6 @@
 // Sample data
+const { createApp, ref, computed, defineComponent } = Vue;
+
 const server_data = {
     collection: {
         title: "Movie List",
@@ -37,15 +39,51 @@ const server_data = {
     }
 };
 
+const Titles = {
+    props: ['title'], // Recibe el título como prop
+    template: `
+        <div class="jumbotron text-center">
+            <h1 id="title">{{ title }}</h1>
+        </div>
+    `
+};
+
 // Componente edit-form
 const EditForm = defineComponent({
+    props: {
+        itemdata: Array,  // Recibe los datos del ítem
+        index: Number     // Índice opcional para IDs únicos
+    },
+    setup(props, { emit }) {
+        // Método para cerrar el formulario y notificar al componente padre
+        function closeForm() {
+            emit('formClosed');  // Envía el evento para que `item-data` cierre el formulario
+        }
+
+        return { closeForm };
+    },
     template: `
-        <div>
-            <h2>Edit Form</h2>
-            <!-- Aquí iría el formulario de edición -->
+        <div class="edit-form">
+            <h2>Editar Película</h2>
+            <form>
+                <div v-for="(field, i) in itemdata" :key="i">
+                    <label :for="'field-' + index + '-' + field.name">{{ field.prompt }}:</label>
+                    <input 
+                        :id="'field-' + index + '-' + field.name"
+                        v-model="field.value" 
+                        class="form-control"
+                    />
+                </div>
+                <br/>
+                <button type="button" @click="closeForm" class="btn btn-danger">Cerrar</button>
+                <br/>
+                <br/>
+            </form>
         </div>
     `
 });
+
+
 
 // Componente item-data
 const ItemData = defineComponent({
@@ -53,31 +91,67 @@ const ItemData = defineComponent({
         item: {
             type: Object,
             required: true
+        },
+        index: {
+            type: Number,
+            required: false
         }
     },
+
+    components: {
+        'edit-form': EditForm
+    },
+
+    setup(props) {
+        const editVisible = ref(false);
+
+        const itemName = computed(() => props.item.data.find(d => d.name === 'name')?.value || '');
+        const itemDescription = computed(() => props.item.data.find(d => d.name === 'description')?.value || '');
+        const itemDirector = computed(() => props.item.data.find(d => d.name === 'director')?.value || '');
+        const itemDate = computed(() => props.item.data.find(d => d.name === 'datePublished')?.value || '');
+
+        function toggleEditFormVisibility() {
+            editVisible.value = !editVisible.value;
+        }
+
+        return { itemName, itemDescription, itemDirector, itemDate, editVisible, toggleEditFormVisibility };
+    },
+
     template: `
         <div>
-            <h3>{{ item.data.find(d => d.name === 'name').value }}</h3>
-            <p>{{ item.data.find(d => d.name === 'description').value }}</p>
-            <p><strong>Director:</strong> {{ item.data.find(d => d.name === 'director').value }}</p>
-            <p><strong>Release Date:</strong> {{ item.data.find(d => d.name === 'datePublished').value }}</p>
-            <a :href="item.href" target="_blank">More Info</a>
+            <div v-if="!editVisible">
+                <h3>{{ item.data.find(d => d.name === 'name').value }}</h3>
+                <p>{{ item.data.find(d => d.name === 'description').value }}</p>
+                <p><strong>Director:</strong> {{ item.data.find(d => d.name === 'director').value }}</p>
+                <p><strong>Release Date:</strong> {{ item.data.find(d => d.name === 'datePublished').value }}</p>
+                &nbsp &nbsp
+                <a :href="item.href" target="_blank" class="btn btn-primary">Ver</a>
+                &nbsp &nbsp
+                <button @click="toggleEditFormVisibility" class="btn btn-secondary">Editar</button>
+                <br/>
+                <br/>
+            </div>
+
+            <!-- Bloque de edición -->
+            <edit-form 
+                v-if="editVisible" 
+                :itemdata="item.data" 
+                :index="index"
+                @formClosed="toggleEditFormVisibility"
+            ></edit-form>
         </div>
     `
 });
 
-// Crear la aplicación Vue
-const app = createApp({
+const app = Vue.createApp({
     setup() {
-        const col = reactive(server_data.collection);
-
-        return {
-            col
-        };
+        const col = Vue.reactive(server_data.collection);
+        return { col };
     }
 });
-
+  
 // Registrar los componentes globalmente
+
 app.component('edit-form', EditForm);
 app.component('item-data', ItemData);
 
